@@ -1,4 +1,4 @@
 # INTEGRANTES
-Juan Pablo Bautista Callejas
-Camilo Andrés Quiñones Buitrago
+* Juan Pablo Bautista Callejas
+* Camilo Andrés Quiñones Buitrago
 
