@@ -1,3 +1,4 @@
 # INTEGRANTES
-<!-- aqui van los nombres de los integrantes -->
-TODO
+Juan Pablo Bautista Callejas
+Camilo Andrés Quiñones Buitrago
+
