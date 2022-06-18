@@ -20,16 +20,13 @@
  * along withthis program.  If not, see <http://www.gnu.org/licenses/>.
  """
 
-
-
+from cgitb import small
 import config as cf
 import sys
 import controller
-from prettytable import PrettyTable
-import datetime
 from DISClib.ADT import list as lt
 assert cf
-import customDfs
+from tabulate import tabulate
 
 
 """
@@ -38,576 +35,259 @@ Presenta el menu de opciones y por cada seleccion
 se hace la solicitud al controlador para ejecutar la
 operación solicitada
 """
-default_limit= 1000
-#sys.setrecursionlimit(default_limit*10)
 
-###################
-#Creación catálogo#
-###################
+def printReqOne(station):
 
-def neu_catalogo():
-    """
-    Llama al controller apra crear un catálogo 
-    """
-    
-    return controller.new_cata()
+    dates = station["dates"]
+    hours = station["hours"]
 
-def asds():
-    controller.asds()
+    max_date_count = 0
+    date_with_max_count = None
+    for date, value in dates.items():
+        if value > max_date_count:
+            max_date_count = value
+            date_with_max_count = date
 
+    max_hour_count = 0
+    hour_with_max_count = None
+    for hour, value in hours.items():
+        if value > max_hour_count:
+            max_hour_count = value
+            hour_with_max_count = hour 
 
-##################################
-#Obtención de elementos de listas#
-##################################
-def Primerosx(lista,elemntos):
-    """
-    Consigue los primeros elementos N de una lista
-    """
-    return controller.Conseguirelem(lista,elemntos)
+    return [
+        station["id"], 
+        station["name"],
+        station["from_count"],
+        station["casuals"],
+        station["annuals"],
+        date_with_max_count,
+        hour_with_max_count
+    ]
 
-def ultimosX(Lista,elem):
-    """
-    Consigue los primeros elementos N de una lista
-    """
-    return controller.Conseguirelem(Lista,elem,":P")
-
-
-
-#################
-#Ejecución menus#
-#################
-
-def cargar_csv(catalogo):
-    """
-    Todos las datos necesarios para ejcutar el menú 1 
-    """
-    size,bicis,estat= controller.caragar_csv(catalogo)
-    
-    null= catalogo["model"]["null"]
-    graf= catalogo["model"]["grafos"]["dirigido"]
-    rep= catalogo["model"]["Repetidos"]
-    un,cant_unk= catalogo["model"]["Cant_desconocido"].values()
-    grafi= catalogo["model"]["grafos"]["normal"]
-    
-    
-    vertices=graf.vertex 
-    arcos= graf.arcos
-    arc= grafi.arcos
-    vert= grafi.vertex
-    last_five= graf.last
-    first_five=graf.first 
-    normal_f= grafi.first 
-    normal_l= grafi.last
-    print("Cantidad de bicicletas cargadas: {}. De estaciones: {}".format(bicis,estat))
-    print('''\nTotal de datos cargados:{} y de datos no agregados por falta de información {}, datos con auto referencia {}
-    La cantidad de rutas que llevan a estaciones desconocidas {} y el número de estaciones desconocidas {} ...         
-    '''.format(size,null,rep,un,cant_unk))
-    print("_"*50)
-    print("-"*50)
-    print("Grafo No dirigido")
-    print("\nEl numero de vertices {} y el número de arcos {} para el grafo".format(vert,arc))
-    
-    print("-"*50)
-    llaves= ["ID","Nombre","Salidas","Llegadas","Grado (grafo)"]
-    
-    fst= controller.get_print(normal_l,catalog,"normal")
-    lsT= controller.get_print(normal_f,catalog,"normal")
-    print("\nPrimeros 5 vertices \n")
-    
-    PrintList(fst,llaves,llaves)
-   
-    print("\nUltimoss 5 Vertices \n")
-   
-    PrintList(lsT,llaves,llaves)
-    
-    print("-"*50)
-    print("Grafo Dirigido")
-    print("\nEl numero de vertices {} y el número de arcos {} para el grafo".format(vertices,arcos))
-    print("-"*50)
-    llaves= ["ID","Nombre","Salidas","Llegadas","Grado Entradas (grafo)","Grado Salidas (grafo)"]
-   
-    st= controller.get_print(first_five,catalog)
-    ts= controller.get_print(last_five,catalog)
-    print("\nPrimeros 5 vertices \n")
-   
-    PrintList(st,llaves,llaves)
-   
-    print("\nUltimos 5 Vertices \n")
-   
-    PrintList(ts,llaves,llaves)
-   
-    
-    
-
-def menu2():
-    """
-    Todos las datos necesarios para ejcutar el menú 2 
-    """
-    top=catalog["model"]["top"]    
-    llaves=["ID","Nombre","Cant-Inicio","Hora Pico","Trips",
-            "Fecha Pico","Viajes","Premiun","No Premiun"]
-    PrintList(top,llaves,llaves)
-
-def menu3():
-    """
-    Todos los datos necesarios para ejcutar el menú 3 
-    """
-    map=catalog["model"]["tabla_general"]
-    grafoNoDirigido = catalog["model"]["grafos"]["normal"]
-    sirve =False 
-    sigue= True 
-    while sigue:
-        source=input("Ingrese el nombre de la estación de inicio: ")
-        if source =="Fad":
-           break 
-        else: 
-         obj=controller.get_Val(map,source)
-         if obj: 
-           while True: 
-            try:
-             disponibilidad=input("Ingrese la disponibilidad: ")
-             if disponibilidad == "Fad":
-                sigue= False 
-                break                
-             else: 
-                disponibilidad=int(disponibilidad)        
-            except: 
-              print("Es un número _o_")      
-            if sigue: 
-             try: 
-               min_estaciones=input("Ingrese el número mínimo de estaciones: ")
-               if min_estaciones == "Fad":
-                sigue= False 
-                break                 
-               else:
-                 min_estaciones=int(min_estaciones)   
-                 
-             except: 
-              print("Es un número _o_")      
-            if sigue: 
-             try: 
-               max_rutas=input("Ingrese el máximo número de rutas: ")
-               if max_rutas == "Fad":
-                sigue= False 
-                break                 
-               else:
-                max_rutas= int(max_rutas)    
-                sigue= False 
-                sirve= True 
-                break
-             except: 
-              print("Es un número _o_")      
-                         
-         else: 
-           asds() 
-           print("No se encontró la estación")     
-
-    if sirve:
-     source = (obj.name,obj.id) 
-     rutas = controller.dfsss(
-        grafoNoDirigido.graf, source, disponibilidad, min_estaciones, max_rutas)
-     print('TODAS LAS RUTAS:')
-    
-     a=0
-     for x in rutas:
-        a=1
-        estat,time,_=x
-        prin=lt.newList() 
-        for e in estat:
-           es,id=e 
-           add={"Estacion":es,"Id":id} 
-           lt.addLast(prin,add)
-        print("Tiempo total de la ruta: ",time)
-        PrintList(prin,["Estacion","Id"],["Saltos","Id"])    
-        print('-'*10)
-     if a == 0:
-        asds()
-        print("No hay info con esas especificaciones")   
-        menu3()
-   
-
-
-def menu4():
-    """
-    Todos los datos necesarios para ejcutar el menú 4 
-    """
-    #Falta TODO 
-    
-    tamaño,dat=catalog["model"]["SCC"]
-    llaves=["Componente","Tamaño","Max Out ID","Max Out Name","Out Trips","Max in ID","Max in Name","In Trips"]
-    print("-+-"*30)
-    print("\n"+" "*20+"Cantidad de SCC: ",tamaño,"\n")
-    print("-+-"*30)
-    print("\n Información respecto SCC's \n")
-    PrintList(dat,llaves,llaves)
-
-def menu5():
-    """
-    Todos los datos necesarios para ejcutar el menú 5 
-    """
-    map=catalog["model"]["tabla_general"]
-    sirve= False 
-    sigue= True 
-    while sigue: 
-        print("Escoja un estación de inicio para empezar la ruta")
-        print("OJO con símbolos especiales y mayúsculas")
-        inicio=input("Ingrese un nombre: ")
-        if inicio == "Fad":
-           break
-        else: 
-            obj1=controller.get_Val(map,inicio)
-            if obj1:
-             while True:
-                  print("Escoja un estación de fin para la ruta")
-                  print("OJO con símbolos especiales y mayúsculas")
-                  fin=input("Ingrese un nombre: ")
-                  if fin == "Fad":
-                      sigue= False
-                      break 
-                  else: 
-                      obj2= controller.get_Val(map,fin)
-                      if obj2:
-                         sirve= True 
-                         sigue= False 
-                         break 
-                      else: 
-                       asds()
-                       print("No se encontró esa estación :(")      
-
-            else: 
-              asds()
-              print("No se encontró esa estación :(") 
-
-    if sirve: 
-       base= (obj1.name,obj1.id)
-       llegar= (obj2.name,obj2.id) 
-       ret= controller.ruta_minima(catalog,base,llegar)
-       if ret:  
-          size,tiemp,rutas,info,fst,lst=ret
-          
-          llave_ruta=["Start Id","Start Name","End Id","End Name","Average"] 
-          llave_estat=["Id","Name","Out","In","Rush H","Rush D","In degree (grafo)","Out Degree (grafo)"]
-          print("="*50)
-          print(" "*+15,"La primera estación:"," "*15) 
-          print("="*50,"\n")  
-          PrintList(fst,llave_estat,llave_estat)
-          print("\n","="*50)
-          print(" "*+15,"La última estación:"," "*15) 
-          print("="*50,"\n")  
-          PrintList(lst,llave_estat,llave_estat)
-          
-          print("\n","/---\---"*10,"/---\-")
-          print("El total de paradas: {} ".format(size+1))
-          print("El total de 'rutas': {}".format(size))
-          print("El total de tiempo: {}".format(tiemp))
-          print("/---\---"*10,"/---\-","\n")
-          print("Detalles de la ruta: \n")
-          PrintList(rutas,llave_ruta,llave_ruta) 
-          print("+---+"*15,"\n")
-          print("Detalles de las estaciones: \n")
-          PrintList(info,llave_estat,llave_estat)
-           
-
-          
-       else:
-          asds() 
-          print("No se encontró ruta alguna entre las dos estaciones")  
-          menu5()  
-
-
-def menu6():
-    """
-    Todos los datos necesarios para ejcutar el menú 6 
-    """
-    rutas=catalog["model"]["Premium_routes"]
-    rango=rutas.range
-    max= rutas.max
-    min= rutas.low
-    sirve= False 
-    sigue= True
-    now= datetime.datetime.utcnow()
-    while sigue:
-        print("Fecha mayor: {} , Fecha menor {} .".format(max,min))
-        print("Utilice el formato “MM/DD/AAAA” profa ")
-        print("Salir: Fad")
-        date=input("Escoja una fecha mayor: " )
-        if date == "Fad":
-            break
-        else: 
-         try: 
-           date= datetime.datetime.strptime(date,"%m/%d/%Y")    
-           while True: 
-            print("Utilice el formato “MM/DD/AAAA” profa ")
-            date2=input("Escoja una fecha menor: ")
-            if date2== "Fad":
-                sigue= False 
-                break
-            try:
-             date2= datetime.datetime.strptime(date2,"%m/%d/%Y")    
-             
-             if date2 > date:
-                 mayor= date2
-                 menor=date
-             else: 
-                 mayor= date
-                 menor= date2    
-
-             sigue= False 
-             
-             sirve= True
-             break
-                                                
-            except:
-               
-             asds()
-             print("Ese no es el formato.... _o_")     
-                   
-         except: 
-          
-           asds()
-           print("Ese no es el formato.... _-_")     
-   
-    if sirve:
-     all= rutas.get_range(mayor,menor)
-     if all:
-      llaves=["Total Viajes","Tiempo Total",
-            "Org Común","Fin Común","Hora Ini","Hora Fin"]
-      PrintList(all,llaves,llaves)
-     else: 
-         asds()
-         print("No encontramos fechas en ese rango :( ")
-         menu6()
-
-def menu7():
-    """
-    Todos los datos necesarios para ejcutar el menú 7 
-    """
-    obj= catalog["model"]["Bicis"]
-    mapa=obj.mapa
-    sirve= False
-    while True:
-        print("Ingrese un identificador para la cicla:")
-        id= input("ID: ")
-        if id == "Fad":
-           break     
-        else: 
-         try: 
-           cicla=controller.get_Val(mapa,id) 
-           if obj: 
-              sirve= True
-              break 
-           else: 
-               print("O no! \nNo está :O") 
-         except:
-           asds() 
-           print("Como es que lo haces fallar :/ \n \n") 
-
-    if sirve: 
-       obj.count_Start(cicla)
-       obj.count_end(cicla)
-       cicla["Horas"]=round(cicla["Segundos"]/3600,2)
-       prin=lt.newList()
-       lt.addFirst(prin,cicla) 
-       llaves= ["ID","Viajes","Segundos","Horas","Inicio","Cant_inicio","Fin","Cant_fin"]
-       PrintList(prin,llaves,llaves)
-
-
-def menu8():
-    """
-    Todos los datos necesarios para ejecutar el menú 8 
-    """
-    sirve= False 
-    sigue =True
-    dos= True
-    map=catalog["model"]["tabla_general"]
-    while sigue: 
-        print("Ojo con las mayusculas y singos especiales")
-        estat= input("Ingrese el nombre de la estación: ")
-        if estat== "Fad":
-         break
-        else: 
-         esacion=controller.get_Val(map,estat)
-         if esacion:
-           if not esacion.ready:
-              esacion.load_hours()   
-           up,down=esacion.limits 
-           while dos: 
-            print("EL rango de fechas disponible es desde {} , hasta {}".format(up,down))
-            print("Salir: Fad")
-            print("Utilice el formato “MM/DD/AAAA HH:MM” profa ")
-            date=input("Escoja una fecha mayor: " )
-            if date == "Fad":
-             sigue =False 
-             break
-            else: 
-             try: 
-              date= datetime.datetime.strptime(date,"%m/%d/%Y %H:%M")    
-              while True: 
-               print("Utilice el formato “MM/DD/AAAA HH:MM” profa ")
-               date2=input("Escoja una fecha menor: ")
-               if date2== "Fad":
-                 sigue= False 
-                 dos= False 
-                 break
-               try :
-                date2= datetime.datetime.strptime(date2,"%m/%d/%Y %H:%M")    
-             
-                if date2 > date:
-                  mayor= date2
-                  menor=date
-                else: 
-                  mayor= date
-                  menor= date2    
-                dos= False 
-                sigue= False 
-             
-                sirve= True
-                break
-                                                
-               except:
-               
-                asds()
-                print("Ese no es el formato.... _o_")     
-                   
-             except: 
-          
-              asds()
-              print("Ese no es el formato.... _-_")
-         else: 
-            asds()
-            print("No encontramos esa estación. \n\n") 
-    if sirve: 
-       lista= controller.info_estat(esacion,mayor,menor) 
-      
-       if lista:  
-        llaves= ["Total inicio","Canitad fin","Viaje Tiempo Mayor","Mayor estación fin"] 
-        PrintList(lista,llaves,llaves) 
-       else: 
-         asds()
-         print("No encontramos información dentro de es rango de fechas \n \n")
-         menu8()
-
-
-############
-#Print Menú#
-############
-
-def PrintList(lista,valores,llaves):
-    """
-    Imprime unalista, idealmente una sublista.
-    Valores: referencia al nombre de las llaves a coneguir para conseguir los valores
-    Llaves:  El nombre con el cual van a salir impresos los valores
-    """
-    x= len(valores)
-    y= len(llaves)
-
-    if x == y:
-         
-        table= PrettyTable()
-        
-        table.field_names=llaves
-        for i in lt.iterator(lista):
-            agregar= []
-            for j in valores:
-                car= i[j]
-                if car is None:
-                   car= "Ni idea ¯\_(ツ)_/¯ " 
-                agregar.append(car)
-            table.add_row(agregar)
-        table.max_width=20
-        print(table)         
-    else: 
-      print("No hay el mismo numero de llaves y valores, _-_")
-      1/0 
-
-def PrintList_Obj(lista,llaves):
-    """
-    Imprime unalista, idealmente una sublista, pero los valores son objectos.
-    Atributos: referencia al nombre de los atributos a  coneguir para conseguir los datos
-    Llaves:  El nombre con el cual van a salir impresos los valores
-    """
-    table= PrettyTable()
-    table.field_names=llaves
-    
-    for i in lt.iterator(lista):
-        
-        agregar= [i.id,i.name,i.start,i.end]
-         
-        table.add_row(agregar)
-    
-    table.max_width=20
-    print(table)         
-   
 def printMenu():
-    print("-"*75)
-    print(" "*30,"Bienvenido")
-    print("-"*75)
-    print("\n")
-    print("#"*75)
+    print("Bienvenido")
     print("1- Cargar información en el catálogo")
-    print("2- REQ. 1: Comprar bicicletas para las estaciones con más viajes de origen ")
-    print("3- REQ. 2: Planear paseos turísticos por la ciudad ")
-    print("4- REQ. 3: Reconocer los componentes fuertemente conectados ")
-    print("5- REQ. 4: Planear una ruta rápida para el usuario ")
-    print("6- REQ. 5: Reportar rutas en un rango de fechas para los usuarios anuales.")
-    print("7- REQ. 6: Planear el mantenimiento preventivo de bicicletas ")
-    print("8- REQ  7: La estación más frecuentada por los visitantes ")
-    print("0- Salir")
-    print("#"*75,"\n")
+    print("2- Requerimiento 1: Comprar bicicletas para las estaciones con más viajes de origen")
+    print("3- Requerimiento 2: Planear paseos turísticos por la ciudad")
+    print("4- Requerimiento 3: Reconocer los componentes fuertemente conectados del sistema")
+    print("5- Requerimiento 4: Planear una ruta rápida para el usuario")
+    print("6- Requerimiento 5: Reportar rutas en un rango de fechas para los usuarios anuales")
+    print("7- Requerimiento 6: Planear el mantenimiento preventivo de bicicletas")
+    print("8- Requerimiento 7(b): La estación más frecuentada por los visitantes")
+    print("0- salir")
 
-catalog = neu_catalogo()
+catalog = None
 
 """
 Menu principal
 """
-carga= False 
 while True:
     printMenu()
-
     inputs = input('Seleccione una opción para continuar\n')
-    val=["1","2","3","4","5","6","7","8","0"]
-    if inputs in val:
-     if int(inputs[0]) == 1:
-       if not carga:  
+    if int(inputs[0]) == 1:
+        catalog = controller.newController()
         print("Cargando información de los archivos ....")
-        cargar_csv(catalog)
-        carga= True
-     else:
-      if inputs == "0":
-          break
-      else:
+        file_size = "small"
+        controller.loadData(catalog, file_size)
+        """
+        Los viajes tienen una estación de origen y un destino, por lo que pueden representar arcos donde la
+        estación de origen y la de destino, son los vértices del grafo; esta información puede ayudar a tener
+        una visión general del uso de las bicicletas por parte de los usuarios.
+        Cada arco del grafo tendrá como peso, el promedio de los tiempos reportados por todos los viajeros
+        que han iniciado y terminado un viaje en un par de estaciones.
+        Al final de la carga hay que reportar los siguientes datos:
+            • El total de viajes obtenidos de los datos.
+            • El total de vértices del grafo.
+            • El total de arcos del grafo.
+            • Mostrar los primeros cinco y últimos cinco vértices registrados en el grafo con las siguientes
+            características:
+                o ID de la estación.
+                o Nombre de la estación.
+                o Numero de viajes de salida y de llegada (grado de entrada y salida del vértice).
+        """
+
+    elif int(inputs[0]) == 2:
+        #req1
+        """
+        Como el equipo de análisis deseo indicar las 5 estaciones desde donde se inician más viajes por
+        parte de los usuarios para adquirir nuevas bicicletas y ponerlas a disposición de los usuarios.
+        No se requieren parámetros de entrada para este requerimiento, se utiliza la totalidad del grafo.
+        La respuesta esperada debe contener:
+            • las 5 estaciones solicitadas con la siguiente información:
+                o Identificador de la estación.
+                o Nombre de la estación.
+                o Cantidad de viajes que han iniciado en esa estación.
+                o El total de viajes iniciados por tipo de usuario.
+                o La fecha (formato “MM/DD/AAAA”) y la hora del día (0:00 - 0:59, 1:00 - 1:59 am,
+                2:00 - 2:59, …, 23:00 - 23:59) en la que más viajes se inician.
+
+        """
+        stations = controller.getMostStartStations(catalog)
+        stations_table = []
+        for station in stations["elements"]:
+            stations_table.append(printReqOne(catalog["stations_map"][station["id"]]))
+
+        print(tabulate(stations_table, headers=["id", "name", "from_count", "casuals", "annuals", "date with max", "hour with max" ], tablefmt="grid"))
+            
+    elif int(inputs[0]) == 3:
+        #req2
+        start_station = input("El nombre de la estación de inicio: ")
+        available_time = input("La disponibilidad del usuario para su paseo: ")
+        min_stations = input("El número mínimo de estaciones de parada para la ruta: ")
+        max_routes = input("El máximo número de rutas de respuesta: ")
+        """
+       Los parámetros de entrada de este requerimiento son:
+        • El nombre de la estación de inicio.
+        • La disponibilidad del usuario pasa su paseo.
+        • El número mínimo de estaciones de parada para la ruta (sin incluir la estación de inicio)
+        • El máximo número de rutas de respuesta.
+            La respuesta esperada debe contener:
+            • las posibles rutas (que no excedan el número máximo de respuesta, sin ningún orden en
+            particular). Por cada una de ellas se debe mostrar la siguiente información:
+                o El número de estaciones visitadas.
+                o La secuencia de las estaciones de cada viaje (indicando el ID y nombre de cada una
+                de ellas).
+                o El tiempo total de la ruta.
+        """
+
+        """
+        numero de estaciones visitadas
+        secuencia ( id, nombre estacion)
+        tiempo ruta
+        """
+        routes = controller.findRoutes(catalog, start_station, int(available_time), int(min_stations), int(max_routes))
+        for route in routes:
+            print("Estaciones visitadas: ", len(route))
+            print("Secuencia: ", controller.getRouteSequence(catalog, route))
+            print("Tiempo total: ", str(controller.getRouteTime(route)))
+
+    elif int(inputs[0]) == 4:
+        #req3
+        """
+        La respuesta esperada debe contener:
+            • El total de componentes fuertemente conectadas y para cada uno de ellos se debe mostrar
+            siguiente información:
+                o El número de estaciones en el componente
+                o El identificador y nombre de la estación donde más viajes inician.
+                o El identificador y nombre de la estación donde más viajes terminan.
+        """
+        components = controller.strongLinked(catalog)
+        print("Componentes")
+        print(tabulate(controller.componentData(catalog, components), headers=["component_stations", "station_id", "station_name"], tablefmt="grid"))
+
+    
+    elif int(inputs[0]) == 5:
+        #req4
+        start_station = input("Nombre estación de origen: ")
+        end_station = input("Nombre estación de destino: ")
+
+        """
+        Los parámetros de entrada de este requerimiento son:
+            • Nombre de la estación origen.
+            • Nombre de la estación destino.
+                La respuesta esperada debe contener:
+                    • El tiempo total que tomará el recorrido entre la estación origen y la estación destino.
+                    • La ruta calculada entre las estaciones (incluyendo el origen y el destino) y para cada estación
+                    en la ruta se debe mostrar la siguiente información:
+                        o El número de identificación de la estación.
+                        o El nombre de la estación.
+                        o El tiempo promedio a la siguiente estación en la ruta.
+        """
+        route = controller.fastestRoute(catalog, start_station, end_station)
+        print("Tiempo total: ", controller.getTotalTimeFastestRoute(route))
+        print(tabulate(controller.getFastestRouteSequence(catalog, route), headers=["id", "name", "time"], tablefmt="grid"))
+           
+    elif int(inputs[0]) == 6:
+        #req5
+        start_date = input("Fecha inical de consulta (MM/DD/AAAA): ")
+        end_date = input("Fecha final de consulta (MM/DD/AAAA): ")
+
+        """
+       Los parámetros de entrada de este requerimiento son:
+            • Fecha inicial de consulta (formato “MM/DD/AAAA”).
+            • Fecha final de consulta (formato “MM/DD/AAAA”).
+                La respuesta esperada debe generar un reporte consolidado que incluya la siguiente información:
+                • El total de viajes realizados.
+                • El total de tiempo invertido en los viajes.
+                • La estación de origen más frecuentada.
+                • La estación de destino más utilizada.
+                • La hora del día en la que más viajes inician (0:00-0:59, 1:00-1:59 am, 2:00-2:59, …, 23:00-23:59)
+                • La hora del día en la que más viajes terminan (0:00-0:59, 1:00-1:59 am, 2:00-2:59, …, 23:00-23:59)
+        """
+        annual_user_report = controller.annualUserReport(catalog, start_date, end_date)
+        print("Total viajes: ", annual_user_report["total_trips"])
+        print("Tiempo total: ", annual_user_report["total_time"])
+        print("Estación de origen más frecuentada: ", 
+            catalog["stations_map"][annual_user_report["start_station"]["key"]]["name"] + " - " + str(annual_user_report["start_station"]["value"])
+            )
+        print("Estación de destino más frecuentada: ", 
+            catalog["stations_map"][annual_user_report["end_station"]["key"]]["name"] + " - " + str(annual_user_report["end_station"]["value"])
+            )
+        hour = str(annual_user_report["start_hour"]["key"])
+        print("Hora del día en que mas viajes inician", hour + ":00-" + hour + ":59")
+        hour = str(annual_user_report["end_hour"]["key"])
+        print("Hora del día en que mas viajes finalizan", hour + ":00-" + hour + ":59")
+        
+
+    elif int(inputs[0]) == 7:
+        #req6
+        bike_id = input("El identificador de la bicicleta en el sistema: ")
+
+        """
+        El parámetro de entrada de este requerimiento es:
+            • El identificador de la bicicleta en el sistema
+                La respuesta esperada debe generar un reporte consolidado que incluya la siguiente información:
+                    • El total de viajes en los que ha participado dicha bicicleta.
+                    • El total de horas de utilización de la bicicleta.
+                    • La estación en la que más viajes se han iniciado en esa bicicleta.
+                    • La estación en la que más viajes ha terminado dicha bicicleta.
+        """
+        usage = controller.bikeUsage(catalog, bike_id)
+        print("Total viajes: ", usage["total_trips"])
+        print("Total horas: ", int(usage["total_time"] / 60))
+        print("Estación con más inicios: ",  
+            catalog["stations_map"][usage["start_station"]["key"]]["name"] + " - " + str(usage["start_station"]["value"])
+            )
+        print("Estación con más terminaciones: ",  
+            catalog["stations_map"][usage["end_station"]["key"]]["name"] + " - " + str(usage["end_station"]["value"])
+            )
+
+    elif int(inputs[0]) == 8:
+        #req7    bono
+        station = input("Nombre de la estación: ")
+        start_date = input("Fecha de inicio: ")
+        end_date = input("Hora de inicio: ")
        
-       if carga:    
-       
-        if int(inputs[0]) == 2:
-         menu2()
-        else: 
-       
-           if inputs == "3":
-               menu3()
-           else: 
-       
-               if inputs == "4":
-                   menu4()
-               else: 
-       
-                    if inputs == "5":
-                        menu5()
-                    else: 
-       
-                        if inputs == "6":
-                            menu6()
-                        else: 
-       
-                            if inputs == "7":
-                                menu7()    
-                            else: 
-                                if inputs== "8":
-                                    menu8()
-       else:
-          print("Carga los datos antes de-.") 
+        """
+        Los parámetros de entrada de este requerimiento son:
+            • Nombre de la estación.
+            • Fecha y hora de inicio.
+            • Fecha y hora de finalización.
+                La respuesta esperada debe generar un reporte consolidado que incluya la siguiente información:
+                    • El total de viajes que iniciaron en dicha estación en el rango de tiempo solicitado.
+                    • El total de viajes que terminaron en dicha estación en el rango de tiempo solicitado.
+                    • El viaje de mayor duración promedio saliendo de la estación de consulta.
+                    • La estación donde terminaron la mayoría de los viajes que iniciaron en la estación.
+        """
+        frequency = controller.mostFrequentStation(catalog, station, start_date, end_date)
+        print("Total viajes que iniciaron: ", frequency["total_trips_start"])
+        print("Total viajes que terminaron: ", frequency["total_trips_end"])
+        print("Viaje con mayor duración saliendo: ", frequency["max_average_time"]["quantity"])
+        print("Estación donde terminaron la mayor canditdad de viejas: ",  
+            catalog["stations_map"][frequency["end_stations"]["key"]]["name"] + " - " + str(frequency["end_stations"]["value"])
+            )
+
+
+
     else:
-        print("Escoja una opción valida... ")
-sys.exit(0)
+        print("Adios")
+        sys.exit(0)
+
+
+
 
 sys.exit(0)
+
+
+
